@@ -3,6 +3,7 @@ package com.nikhilm.hourglass.favouritesservice.services;
 import com.nikhilm.hourglass.favouritesservice.models.FavouriteMovies;
 import com.nikhilm.hourglass.favouritesservice.models.Movie;
 import com.nikhilm.hourglass.favouritesservice.repositories.FavouriteMoviesRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FavouriteMovieService {
 
     @Autowired
@@ -27,6 +29,7 @@ public class FavouriteMovieService {
         return favouriteMoviesRepository.findByUserId(userId)
                 .map(favouriteMovies -> {
                     favouriteMovies.getMovies().add(movie);
+                    log.info("Adding favourite movie " + movie + " for user " + userId);
                     return favouriteMovies;
                 })
                 .switchIfEmpty(Mono.error(new RuntimeException()))

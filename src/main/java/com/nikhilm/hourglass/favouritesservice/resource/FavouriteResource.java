@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
@@ -29,48 +31,66 @@ public class FavouriteResource {
     @GetMapping("/favourites/user/{userId}/movies")
     public Mono<FavouriteMoviesResponse> getFavouriteMovies(@PathVariable("userId") String userId,
                                                     @RequestParam("ids") Optional<String> ids)   {
-
-        List<String> idList = ( ids.isPresent()) ? getParamList(ids.get(), ",") : new ArrayList<>();
-
-        log.info("idList " + idList);
         FavouriteMoviesResponse response = new FavouriteMoviesResponse();
-        response.setUserId(userId);
-        return favouriteMovieService.getMovies(userId)
-                .flatMap(favouriteMovies -> {
-                    log.info("favourite movies " + favouriteMovies);
+        WebClient client = WebClient.create("http://localhost:9900/user-service/user/");
+        return client.get().uri(userId + "/status")
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .flatMap(loginStatus -> {
+                    if (loginStatus)    {
+                        List<String> idList = ( ids.isPresent()) ? getParamList(ids.get(), ",") : new ArrayList<>();
 
-                    response.getFavouriteMovies().addAll(favouriteMovies.getMovies()
-                            .stream()
-                            .filter(movie -> isMovieRequested(movie, idList))
-                            .collect(Collectors.toList()));
-                    return Mono.just(response);
+                        log.info("idList " + idList);
 
-                })
-                .defaultIfEmpty(response);
+                        response.setUserId(userId);
+                        return favouriteMovieService.getMovies(userId)
+                                .flatMap(favouriteMovies -> {
+                                    log.info("favourite movies " + favouriteMovies);
 
+                                    response.getFavouriteMovies().addAll(favouriteMovies.getMovies()
+                                            .stream()
+                                            .filter(movie -> isMovieRequested(movie, idList))
+                                            .collect(Collectors.toList()));
+                                    return Mono.just(response);
+
+                                })
+                                .defaultIfEmpty(response);
+                    } else  {
+                        return Mono.just(response);
+                    }
+                });
 
     }
     @GetMapping("/favourites/user/{userId}/trivia")
     public Mono<FavouriteTriviaResponse> getFavouriteTrivia(@PathVariable("userId") String userId,
                                                             @RequestParam("terms") Optional<String> terms)   {
-        List<String> termList = ( terms.isPresent()) ? getParamList(terms.get(), ",") : new ArrayList<>();
 
-        log.info("termList " + termList);
         FavouriteTriviaResponse response = new FavouriteTriviaResponse();
-        response.setUserId(userId);
+        WebClient client = WebClient.create("http://localhost:9900/user-service/user/");
+        return client.get().uri(userId + "/status")
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .flatMap(loginStatus -> {
+                    if (loginStatus) {
+                        List<String> termList = (terms.isPresent()) ? getParamList(terms.get(), ",") : new ArrayList<>();
 
-        return favouriteTriviaService.getTrivia(userId)
-                .flatMap(favouriteTrivia -> {
-                    log.info("favourite trivia " + favouriteTrivia);
-                    response.setUserId(favouriteTrivia.getUserId());
-                    response.getFavouriteTrivia().addAll(favouriteTrivia.getTrivia()
-                            .stream()
-                            .filter(trivia -> isTriviaRequested(trivia, termList))
-                            .collect(Collectors.toList()));
-                    return Mono.just(response);
+                        log.info("termList " + termList);
+                        response.setUserId(userId);
 
-                })
-                .defaultIfEmpty(response);
+                        return favouriteTriviaService.getTrivia(userId)
+                                .flatMap(favouriteTrivia -> {
+                                    log.info("favourite trivia " + favouriteTrivia);
+                                    response.setUserId(favouriteTrivia.getUserId());
+                                    response.getFavouriteTrivia().addAll(favouriteTrivia.getTrivia()
+                                            .stream()
+                                            .filter(trivia -> isTriviaRequested(trivia, termList))
+                                            .collect(Collectors.toList()));
+                                    return Mono.just(response);
+
+                                })
+                                .defaultIfEmpty(response);
+                    } else return Mono.just(response);
+                });
 
     }
     private List<String> getParamList(String ids, String delim)    {
@@ -95,18 +115,12 @@ public class FavouriteResource {
                     return ResponseEntity.noContent().build();
                 });
     }
-    @PostMapping("/favourites/user/{userId}/movies")
-    public Mono<ResponseEntity<FavouriteMovies>> createFavouriteMovieList(@PathVariable("userId") String userId) {
-        return favouriteMovieService.createFavouriteList(userId)
-                .map(favouriteMovies -> ResponseEntity.created(URI.create("/" + favouriteMovies.getId()))
-                                                .body(favouriteMovies));
-    }
+    @PostMapping("/favourites/user/{userId}")
+    public Mono<ResponseEntity<Void>> createFavouriteMovieList(@PathVariable("userId") String userId) {
+        return Flux.merge(favouriteMovieService.createFavouriteList(userId)
+                , favouriteTriviaService.createFavouriteList(userId))
+                .then(Mono.just(ResponseEntity.ok().build()));
 
-    @PostMapping("/favourites/user/{userId}/tidbits")
-    public Mono<ResponseEntity<FavouriteTrivia>> createFavouriteTriviaList(@PathVariable("userId") String userId) {
-        return favouriteTriviaService.createFavouriteList(userId)
-                .map(favouriteTrivia -> ResponseEntity.created(URI.create("/" + favouriteTrivia.getId()))
-                        .body(favouriteTrivia));
     }
 
     @PostMapping("/favourites/user/{userId}/trivia")
