@@ -9,4 +9,7 @@ import lombok.*;
 @ToString
 public class Movie {
     String id;
+    String name;
+    String description;
+    String poster;
 }
