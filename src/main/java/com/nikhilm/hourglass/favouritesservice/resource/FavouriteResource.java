@@ -6,7 +6,9 @@ import com.nikhilm.hourglass.favouritesservice.models.*;
 import com.nikhilm.hourglass.favouritesservice.services.FavouriteMovieService;
 import com.nikhilm.hourglass.favouritesservice.services.FavouriteTriviaService;
 import com.nikhilm.hourglass.favouritesservice.services.SyncService;
+import com.nikhilm.hourglass.favouritesservice.services.TriviaMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory;
@@ -37,6 +39,10 @@ public class FavouriteResource {
 
     @Autowired
     ReactiveCircuitBreakerFactory factory;
+
+    @Autowired
+    TriviaMapper triviaMapper;
+
 
     ReactiveCircuitBreaker rcb;
 
@@ -97,13 +103,13 @@ public class FavouriteResource {
 
     @PutMapping("/favourites/user/{userId}/trivia")
     public Mono<ResponseEntity<Trivia>> updateTriviaAsFavourite(@PathVariable("userId") String userId,
-                                                                @RequestBody Trivia trivia,
+                                                                @RequestBody TriviaDTO triviaDTO,
                                                                 @RequestHeader("user") String user) {
         if (!userId.equalsIgnoreCase(user)) {
             return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }
-        return favouriteTriviaService.updateTriviaAsFavourite(userId, trivia)
-                .map(favouriteTrivia -> ResponseEntity.ok(trivia))
+        return favouriteTriviaService.updateTriviaAsFavourite(userId, triviaMapper.triviaDTOToTrivia(triviaDTO))
+                .map(favouriteTrivia -> ResponseEntity.ok(triviaMapper.triviaDTOToTrivia(triviaDTO)))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
 
     }

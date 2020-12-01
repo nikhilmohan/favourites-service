@@ -4,7 +4,9 @@ import com.nikhilm.hourglass.favouritesservice.exceptions.ApiError;
 import com.nikhilm.hourglass.favouritesservice.models.*;
 import com.nikhilm.hourglass.favouritesservice.services.FavouriteMovieService;
 import com.nikhilm.hourglass.favouritesservice.services.FavouriteTriviaService;
+import com.nikhilm.hourglass.favouritesservice.services.TriviaMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -29,6 +31,9 @@ class FavouriteResourceTest {
 
     @Autowired
     WebTestClient webTestClient;
+
+    @MockBean
+    TriviaMapper triviaMapper;
 
     @Test
     public void testGetFavouriteMovies()    {
@@ -134,6 +139,7 @@ class FavouriteResourceTest {
         favouriteTrivia.getTrivia().add(trivia);
         favouriteTrivia.setUserId("abc");
 
+        Mockito.when(triviaMapper.triviaDTOToTrivia(any(TriviaDTO.class))).thenReturn(trivia);
         Mockito.when(favouriteTriviaService.updateTriviaAsFavourite(eq("abc"), any(Trivia.class)))
                 .thenReturn(Mono.just(favouriteTrivia));
 
@@ -155,6 +161,7 @@ class FavouriteResourceTest {
         FavouriteTrivia favouriteTrivia = new FavouriteTrivia();
         favouriteTrivia.getTrivia().add(trivia);
         favouriteTrivia.setUserId("abc");
+        Mockito.when(triviaMapper.triviaDTOToTrivia(any(TriviaDTO.class))).thenReturn(trivia);
 
         Mockito.when(favouriteTriviaService.updateTriviaAsFavourite(eq("abc"), any(Trivia.class)))
                 .thenReturn(Mono.just(favouriteTrivia));
@@ -178,6 +185,8 @@ class FavouriteResourceTest {
         FavouriteTrivia favouriteTrivia = new FavouriteTrivia();
         favouriteTrivia.getTrivia().add(trivia);
         favouriteTrivia.setUserId("abc");
+
+        Mockito.when(triviaMapper.triviaDTOToTrivia(any(TriviaDTO.class))).thenReturn(trivia);
 
         Mockito.when(favouriteTriviaService.updateTriviaAsFavourite(eq("abc"), any(Trivia.class)))
                 .thenReturn(Mono.empty());
