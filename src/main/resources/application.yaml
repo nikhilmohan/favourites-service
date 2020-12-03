@@ -3,7 +3,13 @@ server:
 spring:
   profiles:
     active: dev
-
+  cloud.stream:
+    bindings:
+      input-users:
+        destination: users
+        group: favouritegroup
+      input-movies:
+        destination: movies
 ---
 spring:
   profiles: dev
@@ -12,13 +18,7 @@ spring:
       host: localhost
       port: 27017
       database: hourglass
-  cloud.stream:
-    bindings:
-      input-users:
-        destination: users
-        group: favouritegroup
-      input-movies:
-        destination: movies
+
 
 
 ---
@@ -26,12 +26,7 @@ spring:
   profile: prod
   data:
     mongodb:
-      host: localhost
-      port: 27018
+      host: mongodb
+      port: 27017
       database: hourglass
-  cloud.stream:
-    bindings:
-      input-users:
-        destination: users
-      input-movies:
-        destination: movies
+
