@@ -18,7 +18,9 @@ spring:
       host: localhost
       port: 27017
       database: hourglass
-
+  cloud.stream:
+    kafka.binder:
+      brokers: localhost
 
 
 ---
@@ -29,4 +31,8 @@ spring:
       host: mongodb
       port: 27017
       database: hourglass
+
+  cloud.stream:
+    kafka.binder:
+      brokers: kafka
 
