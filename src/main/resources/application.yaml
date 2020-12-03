@@ -34,5 +34,5 @@ spring:
 
   cloud.stream:
     kafka.binder:
-      brokers: kafka
+      brokers: localhost
 
