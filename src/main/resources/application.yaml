@@ -10,6 +10,10 @@ spring:
         group: favouritegroup
       input-movies:
         destination: movies
+    defaultBinder: rabbit
+    default.contentType: application/json
+
+
 ---
 spring:
   profiles: dev
@@ -18,9 +22,14 @@ spring:
       host: localhost
       port: 27017
       database: hourglass
-  cloud.stream:
-    kafka.binder:
-      brokers: localhost
+
+spring.rabbitmq:
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+
+
 
 
 ---
@@ -32,8 +41,9 @@ spring:
       port: 27017
       database: hourglass
 
-  cloud.stream:
-    kafka.binder:
-      brokers: kafka
-      defaultBrokerPort: 9093
+spring.rabbitmq:
+  host: rabbitmq
+  port: 5672
+  username: guest
+  password: guest
 
