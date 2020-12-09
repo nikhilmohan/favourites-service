@@ -29,7 +29,8 @@ spring.rabbitmq:
   username: guest
   password: guest
 
-
+service.url:
+  gateway: localhost
 
 
 ---
@@ -46,4 +47,7 @@ spring.rabbitmq:
   port: 5672
   username: guest
   password: guest
+
+service.url:
+  gateway: gateway-service
 
