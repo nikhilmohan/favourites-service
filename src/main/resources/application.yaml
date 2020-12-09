@@ -37,7 +37,7 @@ spring:
   profile: prod
   data:
     mongodb:
-      host: mongodb
+      host: hourglassdb-service
       port: 27017
       database: hourglass
 
