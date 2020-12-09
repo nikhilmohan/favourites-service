@@ -53,7 +53,10 @@ public class FavouriteMovieService implements FavouriteService{
                     return favouriteMovies;
                 })
                 .switchIfEmpty(Mono.error(new RuntimeException()))
-                .flatMap(favouriteMoviesRepository::save);
+                .flatMap(favouriteMovies -> {
+                        log.info("favourite movies " + favouriteMovies);
+                        return favouriteMoviesRepository.save(favouriteMovies);
+                });
 
     }
 

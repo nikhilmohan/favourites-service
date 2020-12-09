@@ -73,7 +73,10 @@ public class FavouriteResource {
             return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
         }
         return favouriteMovieService.updateMovieAsFavourite(userId, movie)
-                .map(favouriteMovies -> ResponseEntity.ok(movie))
+                .map(favouriteMovies -> {
+                    log.info("saved fav movies " + favouriteMovies);
+                    return ResponseEntity.ok(movie);
+                })
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
